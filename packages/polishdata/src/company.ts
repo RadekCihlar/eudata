@@ -1,6 +1,5 @@
 import { fetchJSON } from 'eudata-common'
 import type {
-  PLBoardMember,
   PLCompanyInfo,
   PLDirector,
   PLPKDCode,
@@ -9,88 +8,153 @@ import type {
   PLShareholder,
   RequestOptions,
 } from './types.js'
-import { assertValidNIP, formatKRS, normalizeAddress, type KrsAddressRaw } from './utils.js'
+import { formatKRS, normalizeAddress, type KrsAddressRaw } from './utils.js'
 
 const KRS_API_BASE = 'https://api-krs.ms.gov.pl/api/krs'
 
-interface KrsEntityRaw {
-  numerKRS?: string
-  nip?: string
-  regon?: string
-  nazwa?: string
-  adres?: KrsAddressRaw
-  formaPrawna?: string
-  dataPowstania?: string
-  dataRejestracji?: string
-  dataWykreslenia?: string | null
-  kapitalZakladowy?: number
-  waluta?: string
-  pkd?: Array<{ kod?: string; opis?: string; przewazajacy?: boolean }>
-  sad?: string
-  zarzad?: Array<{ imie?: string; nazwisko?: string; funkcja?: string; dataOd?: string | null; nrWpisuKRS?: string }>
-  radaNadzorcza?: Array<{ imie?: string; nazwisko?: string; funkcja?: string; dataOd?: string | null }>
-  status?: string
+interface KrsAddressApi {
+  ulica?: string
+  nrDomu?: string
+  nrLokalu?: string
+  miejscowosc?: string
+  kodPocztowy?: string
+  kraj?: string
+  wojewodztwo?: string
+}
+
+interface KrsDzial1 {
+  danePodmiotu?: {
+    nazwa?: string
+    formaPrawna?: string
+    identyfikatory?: { nip?: string; regon?: string }
+  }
+  siedzibaIAdres?: {
+    siedziba?: { wojewodztwo?: string; miejscowosc?: string }
+    adres?: KrsAddressApi
+  }
+  kapital?: { kapitalZakladowy?: string; wysokoscKapitaluWplaconego?: string }
+  przedmiotDzialalnosci?: {
+    przedmiotPrzewazajacejDzialalnosci?: Array<{ przedmiotDzialalnosci?: { kodPKD?: string; opis?: string } }>
+    przedmiotPozostalejDzialalnosci?: Array<{ przedmiotDzialalnosci?: { kodPKD?: string; opis?: string } }>
+  }
 }
 
 interface KrsResponse {
-  odpis?: { dane?: { dzial1?: KrsEntityRaw } }
+  odpis?: {
+    naglowekA?: {
+      numerKRS?: string
+      dataRejestracjiWKRS?: string
+      oznaczenieSaduDokonujacegoOstatniegoWpisu?: string
+    }
+    dane?: {
+      dzial1?: KrsDzial1
+      dzial2?: {
+        organReprezentacji?: {
+          sklad?: Array<{
+            nazwiska?: {
+              imiePierwsze?: string
+              nazwiskoIPierwszyClon?: string
+              funkcjaWOrganieReprezentujacym?: string
+            }
+          }>
+        }
+      }
+      dzial6?: {
+        likwidacja?: { dataRozwiazania?: string }
+        upadlosc?: { dataPostanowieniaOOgloszeniuUpadlosci?: string }
+      }
+    }
+  }
 }
 
-function mapStatus(s: string | undefined, dissolved: string | null): PLCompanyInfo['status'] {
-  if (dissolved) return 'dissolved'
-  const lower = (s ?? '').toLowerCase()
-  if (lower.includes('likwid')) return 'in_liquidation'
-  if (lower.includes('upadl') || lower.includes('bankrupt')) return 'in_bankruptcy'
-  if (lower.includes('akt')) return 'active'
-  return 'unknown'
+function mapStatus(raw: KrsResponse, dissolved: string | null, bankrupt: string | null): PLCompanyInfo['status'] {
+  if (dissolved) return 'in_liquidation'
+  if (bankrupt) return 'in_bankruptcy'
+  return raw.odpis?.naglowekA?.numerKRS ? 'active' : 'unknown'
 }
 
-function mapPkd(rows: KrsEntityRaw['pkd']): PLPKDCode[] {
-  return (rows ?? []).map((p) => ({
-    code: p.kod ?? '',
-    description: p.opis ?? '',
-    primary: !!p.przewazajacy,
-  }))
+function adaptAddress(a: KrsAddressApi | undefined): KrsAddressRaw {
+  if (!a) return {}
+  return {
+    ulica: a.ulica,
+    numerBudynku: a.nrDomu,
+    numerLokalu: a.nrLokalu,
+    miejscowosc: a.miejscowosc,
+    kodPocztowy: a.kodPocztowy,
+    wojewodztwo: a.wojewodztwo,
+    kraj: a.kraj,
+  }
 }
 
-function mapDirectors(rows: KrsEntityRaw['zarzad']): PLDirector[] {
-  return (rows ?? []).map((d) => ({
-    name: `${d.imie ?? ''} ${d.nazwisko ?? ''}`.trim(),
-    role: d.funkcja ?? '',
-    since: d.dataOd ?? null,
-    krsEntryNumber: d.nrWpisuKRS ?? null,
-  }))
+function parsePlnAmount(s: string | undefined): number | null {
+  if (!s) return null
+  const cleaned = s.replace(/[^\d,.-]/g, '').replace(',', '.')
+  const n = Number(cleaned)
+  return Number.isFinite(n) ? n : null
 }
 
-function mapBoard(rows: KrsEntityRaw['radaNadzorcza']): PLBoardMember[] {
-  return (rows ?? []).map((b) => ({
-    name: `${b.imie ?? ''} ${b.nazwisko ?? ''}`.trim(),
-    role: b.funkcja ?? '',
-    since: b.dataOd ?? null,
-  }))
+function mapPkd(d: KrsDzial1 | undefined): PLPKDCode[] {
+  if (!d?.przedmiotDzialalnosci) return []
+  const out: PLPKDCode[] = []
+  for (const row of d.przedmiotDzialalnosci.przedmiotPrzewazajacejDzialalnosci ?? []) {
+    if (row.przedmiotDzialalnosci?.kodPKD) {
+      out.push({
+        code: row.przedmiotDzialalnosci.kodPKD,
+        description: row.przedmiotDzialalnosci.opis ?? '',
+        primary: true,
+      })
+    }
+  }
+  for (const row of d.przedmiotDzialalnosci.przedmiotPozostalejDzialalnosci ?? []) {
+    if (row.przedmiotDzialalnosci?.kodPKD) {
+      out.push({
+        code: row.przedmiotDzialalnosci.kodPKD,
+        description: row.przedmiotDzialalnosci.opis ?? '',
+        primary: false,
+      })
+    }
+  }
+  return out
+}
+
+function mapDirectors(raw: KrsResponse): PLDirector[] {
+  const sklad = raw.odpis?.dane?.dzial2?.organReprezentacji?.sklad ?? []
+  return sklad.map((s) => {
+    const n = s.nazwiska ?? {}
+    return {
+      name: `${n.imiePierwsze ?? ''} ${n.nazwiskoIPierwszyClon ?? ''}`.trim(),
+      role: n.funkcjaWOrganieReprezentujacym ?? '',
+      since: null,
+      krsEntryNumber: null,
+    }
+  })
 }
 
 function mapEntity(raw: KrsResponse): PLCompanyInfo {
-  const e = raw.odpis?.dane?.dzial1 ?? {}
-  const dissolved = e.dataWykreslenia ?? null
+  const d1 = raw.odpis?.dane?.dzial1 ?? {}
+  const d6 = raw.odpis?.dane?.dzial6 ?? {}
+  const dane = d1.danePodmiotu ?? {}
+  const naglowek = raw.odpis?.naglowekA ?? {}
+  const dissolved = d6.likwidacja?.dataRozwiazania ?? null
+  const bankrupt = d6.upadlosc?.dataPostanowieniaOOgloszeniuUpadlosci ?? null
   return {
-    krs: e.numerKRS ?? '',
-    nip: e.nip ?? '',
-    regon: e.regon ?? '',
-    name: (e.nazwa ?? '').trim(),
-    address: normalizeAddress(e.adres),
-    legalForm: e.formaPrawna ?? '',
-    founded: e.dataPowstania ?? null,
-    registered: e.dataRejestracji ?? null,
+    krs: naglowek.numerKRS ?? '',
+    nip: dane.identyfikatory?.nip ?? '',
+    regon: dane.identyfikatory?.regon ?? '',
+    name: (dane.nazwa ?? '').trim(),
+    address: normalizeAddress(adaptAddress(d1.siedzibaIAdres?.adres)),
+    legalForm: dane.formaPrawna ?? '',
+    founded: naglowek.dataRejestracjiWKRS ?? null,
+    registered: naglowek.dataRejestracjiWKRS ?? null,
     dissolved,
-    active: !dissolved,
-    shareCapital: e.kapitalZakladowy ?? null,
-    currency: e.waluta ?? 'PLN',
-    pkdCodes: mapPkd(e.pkd),
-    court: e.sad ?? '',
-    directors: mapDirectors(e.zarzad),
-    supervisoryBoard: mapBoard(e.radaNadzorcza),
-    status: mapStatus(e.status, dissolved),
+    active: !dissolved && !bankrupt,
+    shareCapital: parsePlnAmount(d1.kapital?.kapitalZakladowy),
+    currency: 'PLN',
+    pkdCodes: mapPkd(d1),
+    court: naglowek.oznaczenieSaduDokonujacegoOstatniegoWpisu ?? '',
+    directors: mapDirectors(raw),
+    supervisoryBoard: [],
+    status: mapStatus(raw, dissolved, bankrupt),
     _raw: raw,
   }
 }
@@ -103,20 +167,16 @@ export const company = {
     return mapEntity(raw)
   },
 
-  async byNIP(nip: string, opts?: RequestOptions): Promise<PLCompanyInfo> {
-    const valid = assertValidNIP(nip)
-    const url = `${KRS_API_BASE}/OdpisAktualny?nip=${valid}&rejestr=P&format=json`
-    const raw = await fetchJSON<KrsResponse>(url, { ...(opts ?? {}), source: 'pl:krs' })
-    return mapEntity(raw)
+  async byNIP(_nip: string, _opts?: RequestOptions): Promise<PLCompanyInfo> {
+    throw new Error(
+      'KRS API requires a 10-digit KRS number; lookup-by-NIP is not exposed publicly. Use byKRS instead.'
+    )
   },
 
-  async search(name: string, opts?: PLSearchOptions): Promise<PLCompanyInfo[]> {
-    const params = new URLSearchParams({ nazwa: name, limit: String(opts?.limit ?? 10) })
-    const res = await fetchJSON<{ results?: KrsResponse[] }>(
-      `${KRS_API_BASE}/szukaj?${params}`,
-      { ...(opts ?? {}), source: 'pl:krs' }
+  async search(_name: string, _opts?: PLSearchOptions): Promise<PLCompanyInfo[]> {
+    throw new Error(
+      'KRS API has no public search endpoint; use byKRS with a known KRS number.'
     )
-    return (res.results ?? []).map(mapEntity)
   },
 
   async directors(krs: string, opts?: RequestOptions): Promise<PLDirector[]> {
@@ -124,45 +184,11 @@ export const company = {
     return info.directors
   },
 
-  async shareholders(krs: string, opts?: RequestOptions): Promise<PLShareholder[]> {
-    const valid = formatKRS(krs)
-    interface SH {
-      nazwa?: string
-      typ?: string
-      nip?: string
-      udzialy?: number
-      wartoscUdzialow?: number
-      procent?: string
-    }
-    const res = await fetchJSON<{ wspolnicy?: SH[] }>(
-      `${KRS_API_BASE}/OdpisAktualny/${valid}/wspolnicy?format=json`,
-      { ...(opts ?? {}), source: 'pl:krs' }
-    )
-    return (res.wspolnicy ?? []).map((s) => ({
-      name: s.nazwa ?? '',
-      type: s.typ === 'firma' ? 'company' : 'person',
-      nip: s.nip ?? null,
-      shares: s.udzialy ?? null,
-      shareValue: s.wartoscUdzialow ?? null,
-      percentage: s.procent ?? null,
-    }))
+  async shareholders(_krs: string, _opts?: RequestOptions): Promise<PLShareholder[]> {
+    throw new Error('Shareholders not exposed by KRS public API; use eKRS portal scraping.')
   },
 
-  async history(krs: string, opts?: RequestOptions): Promise<PLRegisterChange[]> {
-    const valid = formatKRS(krs)
-    interface ChangeRow {
-      data?: string
-      typ?: string
-      opis?: string
-    }
-    const res = await fetchJSON<{ zmiany?: ChangeRow[] }>(
-      `${KRS_API_BASE}/OdpisPelny/${valid}/zmiany?format=json`,
-      { ...(opts ?? {}), source: 'pl:krs' }
-    )
-    return (res.zmiany ?? []).map((c) => ({
-      date: c.data ?? '',
-      type: c.typ ?? '',
-      description: c.opis ?? '',
-    }))
+  async history(_krs: string, _opts?: RequestOptions): Promise<PLRegisterChange[]> {
+    throw new Error('History endpoint not available on public KRS API; use eKRS portal.')
   },
 }

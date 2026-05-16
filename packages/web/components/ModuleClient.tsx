@@ -14,6 +14,7 @@ interface Flag {
   detail?: string
 }
 import type { ModuleSpec } from '@/lib/modules'
+import { STATUS_META } from '@/lib/modules'
 
 interface ApiResponse {
   ok: boolean
@@ -84,9 +85,31 @@ export function ModuleClient({ module: mod }: { module: ModuleSpec }) {
             {mod.country} / {mod.slug}
           </span>
           <span className="h-px flex-1 bg-white/10" />
+          <span
+            className={`inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider ${STATUS_META[mod.status].color}`}
+          >
+            <span className={`h-1.5 w-1.5 rounded-full ${STATUS_META[mod.status].dot}`} />
+            {STATUS_META[mod.status].label}
+          </span>
         </div>
         <h1 className="text-3xl font-bold">{mod.label}</h1>
         <p className="text-white/60 mt-1">{mod.description}</p>
+        {mod.note && (
+          <div
+            className={`mt-4 border rounded-md p-3 text-sm ${
+              mod.status === 'broken'
+                ? 'border-red-500/30 bg-red-500/5 text-red-200'
+                : mod.status === 'needs_key'
+                ? 'border-sky-500/30 bg-sky-500/5 text-sky-200'
+                : 'border-amber-500/30 bg-amber-500/5 text-amber-200'
+            }`}
+          >
+            <span className="font-mono text-[10px] uppercase tracking-widest mr-2">
+              {STATUS_META[mod.status].label}
+            </span>
+            {mod.note}
+          </div>
+        )}
       </header>
 
       <form onSubmit={submit} className="space-y-3">

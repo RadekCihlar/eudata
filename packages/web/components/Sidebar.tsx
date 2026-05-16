@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useMemo, useState } from 'react'
-import { COUNTRY_FLAGS, COUNTRY_LABELS, MODULES } from '@/lib/modules'
+import { COUNTRY_FLAGS, COUNTRY_LABELS, MODULES, STATUS_META } from '@/lib/modules'
 
 const COUNTRIES: Array<'cz' | 'sk' | 'pl' | 'eu'> = ['cz', 'sk', 'pl', 'eu']
 
@@ -58,13 +58,17 @@ export function Sidebar() {
                   <li key={`${m.country}-${m.slug}`}>
                     <Link
                       href={href}
-                      className={`block px-3 py-1.5 text-sm rounded-md transition-colors ${
+                      className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors ${
                         active
                           ? 'bg-accent-500/20 text-accent-400 font-medium'
                           : 'text-white/70 hover:bg-white/5 hover:text-white'
                       }`}
                     >
-                      {m.label}
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full shrink-0 ${STATUS_META[m.status].dot}`}
+                        title={STATUS_META[m.status].label}
+                      />
+                      <span className="truncate">{m.label}</span>
                     </Link>
                   </li>
                 )

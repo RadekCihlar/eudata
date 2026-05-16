@@ -2,6 +2,7 @@ import * as cz from 'czechdata'
 import * as sk from 'slovakdata'
 import * as pl from 'polishdata'
 import { vies, sanctions as euSanctions, lei, trademark } from 'eudata'
+import { validateNipChecksum } from 'eudata-common'
 
 type Handler = (id: string) => Promise<unknown>
 
@@ -41,7 +42,11 @@ const handlers: Record<string, Handler> = {
   'sk/risk': (id) => sk.risk.assess(id),
 
   // PL
-  'pl/company': (id) => pl.company.byNIP(id),
+  'pl/company': (id) => {
+    const digits = id.replace(/\D/g, '')
+    if (digits.length === 10 && validateNipChecksum(digits)) return pl.company.byNIP(digits)
+    return pl.company.byKRS(digits)
+  },
   'pl/sole-trader': (id) => pl.soleTrader.byNIP(id),
   'pl/vat': (id) => pl.vat.check(id),
   'pl/insolvency': (id) => pl.insolvency.check(id),
