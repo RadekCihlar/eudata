@@ -1,90 +1,100 @@
 import Link from 'next/link'
+import { MODULES, STATUS_META } from '@/lib/modules'
 
-const STATS = [
-  { label: 'Data sources', value: '45' },
-  { label: 'Countries', value: '3 + EU' },
-  { label: 'Modules', value: '38' },
-  { label: 'Runtime deps', value: '0' },
+const QUICK_TRIES = [
+  { country: 'cz', slug: 'company', id: '64774716', desc: 'Czech business by ICO' },
+  { country: 'cz', slug: 'risk', id: '64774716', desc: 'Composite risk score' },
+  { country: 'pl', slug: 'company', id: '0000019193', desc: 'Polish company by KRS' },
+  { country: 'pl', slug: 'vat', id: '5260250274', desc: 'White List VAT check' },
+  { country: 'cz', slug: 'vin', id: '1HGCM82633A004352', desc: 'VIN decode (NHTSA, global)' },
+  { country: 'eu', slug: 'lei', id: 'Acme', desc: 'LEI search (GLEIF)' },
 ]
 
 export default function Home() {
+  const working = MODULES.filter((m) => m.status === 'working').length
+  const experimental = MODULES.filter((m) => m.status === 'experimental').length
+
   return (
     <div className="space-y-12">
       <header>
         <div className="flex items-center gap-3 mb-2">
-          <span className="text-accent-400 font-mono text-xs uppercase tracking-widest">eudata.explorer</span>
+          <span className="text-accent-400 font-mono text-xs uppercase tracking-widest">
+            eudata.explorer · v0.1
+          </span>
           <span className="h-px flex-1 bg-white/10" />
         </div>
         <h1 className="text-5xl font-bold tracking-tight leading-tight">
-          Unified EU<br />
-          <span className="text-accent-500">public data</span>
+          EU public data,<br />
+          <span className="text-accent-500">unified</span>
         </h1>
         <p className="mt-6 text-lg text-white/60 max-w-2xl">
-          One library, 45 free public registries across Czech Republic, Slovakia, Poland,
-          and the EU layer. Pick a module on the left and try it live.
+          Real, working access to Czech, Slovak, Polish, and EU public registries.
+          Honest about scope: {working} verified working sources, {experimental} experimental.
+          Pick a module on the left.
         </p>
       </header>
 
-      <div className="grid grid-cols-4 gap-4">
-        {STATS.map((s) => (
-          <div key={s.label} className="border border-white/10 rounded-lg p-5 bg-white/5">
-            <div className="font-mono text-3xl font-bold text-accent-400">{s.value}</div>
-            <div className="text-xs text-white/40 uppercase tracking-wider mt-2">{s.label}</div>
+      <div className="grid grid-cols-3 gap-4">
+        <div className="border border-emerald-500/30 bg-emerald-500/5 rounded-lg p-5">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <span className="text-xs uppercase tracking-wider text-emerald-300">
+              {STATUS_META.working.label}
+            </span>
           </div>
-        ))}
+          <div className="font-mono text-3xl font-bold text-emerald-300 mt-2">{working}</div>
+          <div className="text-xs text-white/40 mt-1">Verified live</div>
+        </div>
+        <div className="border border-amber-500/30 bg-amber-500/5 rounded-lg p-5">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-amber-500" />
+            <span className="text-xs uppercase tracking-wider text-amber-300">
+              {STATUS_META.experimental.label}
+            </span>
+          </div>
+          <div className="font-mono text-3xl font-bold text-amber-300 mt-2">{experimental}</div>
+          <div className="text-xs text-white/40 mt-1">Network/parser issues</div>
+        </div>
+        <div className="border border-white/10 rounded-lg p-5 bg-white/5">
+          <div className="text-xs uppercase tracking-wider text-white/40">Runtime deps</div>
+          <div className="font-mono text-3xl font-bold text-accent-400 mt-2">0</div>
+          <div className="text-xs text-white/40 mt-1">Node 20+ built-ins only</div>
+        </div>
       </div>
 
       <section className="space-y-4">
         <h2 className="text-sm font-mono uppercase tracking-widest text-white/40">Try these</h2>
         <div className="grid grid-cols-2 gap-3">
-          <Link
-            href="/cz/company?id=64774716"
-            className="border border-white/10 rounded-lg p-4 hover:bg-white/5 hover:border-accent-500/50 transition-colors group"
-          >
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-xs text-accent-400">CZ / company</span>
-              <span className="text-white/30 group-hover:text-accent-400">→</span>
-            </div>
-            <div className="font-medium mt-1">Lookup ARES by ICO</div>
-            <div className="text-sm text-white/50 mt-1">e.g. 64774716</div>
-          </Link>
-
-          <Link
-            href="/eu/vies?id=CZ64774716"
-            className="border border-white/10 rounded-lg p-4 hover:bg-white/5 hover:border-accent-500/50 transition-colors group"
-          >
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-xs text-accent-400">EU / vies</span>
-              <span className="text-white/30 group-hover:text-accent-400">→</span>
-            </div>
-            <div className="font-medium mt-1">Validate EU VAT</div>
-            <div className="text-sm text-white/50 mt-1">All 27 member states</div>
-          </Link>
-
-          <Link
-            href="/pl/vat?id=5213003798"
-            className="border border-white/10 rounded-lg p-4 hover:bg-white/5 hover:border-accent-500/50 transition-colors group"
-          >
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-xs text-accent-400">PL / vat</span>
-              <span className="text-white/30 group-hover:text-accent-400">→</span>
-            </div>
-            <div className="font-medium mt-1">White List check</div>
-            <div className="text-sm text-white/50 mt-1">Bank account verification</div>
-          </Link>
-
-          <Link
-            href="/cz/risk?id=64774716"
-            className="border border-white/10 rounded-lg p-4 hover:bg-white/5 hover:border-accent-500/50 transition-colors group"
-          >
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-xs text-accent-400">CZ / risk</span>
-              <span className="text-white/30 group-hover:text-accent-400">→</span>
-            </div>
-            <div className="font-medium mt-1">Composite risk score</div>
-            <div className="text-sm text-white/50 mt-1">Combines 3+ sources</div>
-          </Link>
+          {QUICK_TRIES.map((t) => (
+            <Link
+              key={`${t.country}-${t.slug}`}
+              href={`/${t.country}/${t.slug}?id=${encodeURIComponent(t.id)}`}
+              className="border border-white/10 rounded-lg p-4 hover:bg-white/5 hover:border-accent-500/50 transition-colors group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-xs text-accent-400">
+                  {t.country} / {t.slug}
+                </span>
+                <span className="text-white/30 group-hover:text-accent-400">→</span>
+              </div>
+              <div className="font-medium mt-1">{t.desc}</div>
+              <div className="text-xs text-white/50 mt-1 font-mono">id={t.id}</div>
+            </Link>
+          ))}
         </div>
+      </section>
+
+      <section className="border border-white/10 rounded-lg p-6 bg-white/5">
+        <h2 className="text-sm font-mono uppercase tracking-widest text-white/40 mb-3">
+          Honest scope
+        </h2>
+        <p className="text-white/70 text-sm leading-relaxed">
+          The plan listed 45 sources. In reality, ~30 of those gov registries have no public
+          REST API — they ship as HTML SPAs, CSV downloads, or behind login walls. v0.1 ships
+          the working set. Broken modules stay in the codebase with status flags and notes
+          on what's needed (API keys, real scrapers, alternate endpoints). See{' '}
+          <code className="font-mono text-accent-400">STATUS.md</code> for the full breakdown.
+        </p>
       </section>
     </div>
   )

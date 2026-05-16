@@ -16,7 +16,11 @@ export function Sidebar() {
     return COUNTRIES.map((c) => ({
       country: c,
       modules: MODULES.filter(
-        (m) => m.country === c && (!f || m.label.toLowerCase().includes(f) || m.slug.includes(f))
+        (m) =>
+          m.country === c &&
+          m.status !== 'broken' &&
+          m.status !== 'needs_key' &&
+          (!f || m.label.toLowerCase().includes(f) || m.slug.includes(f))
       ),
     })).filter((g) => g.modules.length > 0)
   }, [filter])
