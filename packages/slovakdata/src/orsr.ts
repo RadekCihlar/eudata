@@ -30,6 +30,15 @@ function findDetailLink(root: HTMLElement): SearchHit | null {
   return null
 }
 
+function stripOdSuffix(s: string | null): string {
+  if (!s) return ''
+  return s.replace(/\s*\(\s*(?:od|do)\s*:\s*[^)]*\)\s*/gi, '').replace(/\s+/g, ' ').trim()
+}
+
+function cleanName(s: string): string {
+  return s.replace(/[ \s]+/g, ' ').trim()
+}
+
 function parseDate(s: string | null): string | null {
   if (!s) return null
   const m = /(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})/.exec(s)
@@ -38,14 +47,14 @@ function parseDate(s: string | null): string | null {
 }
 
 function extractAddress(root: HTMLElement): OrsfAddressRaw {
-  const txt = textAfterLabel(root, 'Sídlo') ?? ''
+  const txt = stripOdSuffix(textAfterLabel(root, 'Sídlo'))
   const m = /^(.+?)\s+(\d[\d\/]*)\s*,?\s*(\d{3}\s*\d{2})?\s*(.+?)$/.exec(txt)
   if (!m) return {}
   return {
-    ulica: m[1]?.trim() ?? '',
+    ulica: cleanName(m[1] ?? ''),
     cisloDomu: m[2] ?? '',
     psc: m[3]?.replace(/\s/g, '') ?? '',
-    obec: m[4]?.trim() ?? '',
+    obec: cleanName(m[4] ?? ''),
   }
 }
 
@@ -59,7 +68,7 @@ function extractDirectors(root: HTMLElement): SKDirector[] {
   const seen = new Set<string>()
   let m: RegExpExecArray | null
   while ((m = nameRegex.exec(block)) !== null) {
-    const name = m[1]!
+    const name = cleanName(m[1]!)
     if (seen.has(name)) continue
     seen.add(name)
     out.push({
@@ -75,13 +84,13 @@ function extractDirectors(root: HTMLElement): SKDirector[] {
 
 function parseDetail(html: string, ico: string): SKCompanyInfo {
   const root = parseHTML(html)
-  const name = textAfterLabel(root, 'Obchodné meno') ?? ''
-  const legalForm = textAfterLabel(root, 'Právna forma') ?? ''
+  const name = stripOdSuffix(textAfterLabel(root, 'Obchodné meno'))
+  const legalForm = stripOdSuffix(textAfterLabel(root, 'Právna forma'))
   const founded = parseDate(textAfterLabel(root, 'Deň zápisu'))
   const dissolved = parseDate(textAfterLabel(root, 'Deň výmazu'))
-  const dic = textAfterLabel(root, 'DIČ') ?? null
-  const icDph = textAfterLabel(root, 'IČ DPH') ?? null
-  const capitalRaw = textAfterLabel(root, 'Základné imanie') ?? ''
+  const dic = stripOdSuffix(textAfterLabel(root, 'DIČ')) || null
+  const icDph = stripOdSuffix(textAfterLabel(root, 'IČ DPH')) || null
+  const capitalRaw = stripOdSuffix(textAfterLabel(root, 'Základné imanie'))
   const capitalMatch = /([\d\s,.]+)\s*(EUR|Sk)/.exec(capitalRaw)
   const registeredCapital = capitalMatch
     ? Number(capitalMatch[1]!.replace(/[\s,.]/g, '')) || null
@@ -92,7 +101,7 @@ function parseDetail(html: string, ico: string): SKCompanyInfo {
 
   return {
     ico,
-    name: name.replace(/\s+/g, ' ').trim(),
+    name: cleanName(name),
     address: normalizeAddress(extractAddress(root)),
     legalForm,
     founded,
@@ -103,7 +112,7 @@ function parseDetail(html: string, ico: string): SKCompanyInfo {
     skNace: [],
     registeredCapital,
     currency: capitalMatch?.[2] === 'EUR' ? 'EUR' : 'SKK',
-    court: courtMatch?.[1]?.trim() ?? null,
+    court: cleanName(courtMatch?.[1] ?? '') || null,
     section: sectionMatch?.[1] ?? null,
     insertNumber: insertMatch?.[1] ?? null,
     directors: extractDirectors(root),

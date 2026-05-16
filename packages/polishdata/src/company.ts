@@ -49,15 +49,23 @@ interface KrsResponse {
     dane?: {
       dzial1?: KrsDzial1
       dzial2?: {
-        organReprezentacji?: {
+        reprezentacja?: {
+          nazwaOrganu?: string
+          sposobReprezentacji?: string
           sklad?: Array<{
-            nazwiska?: {
-              imiePierwsze?: string
-              nazwiskoIPierwszyClon?: string
-              funkcjaWOrganieReprezentujacym?: string
-            }
+            nazwisko?: { nazwiskoICzlon?: string; nazwiskoIICzlon?: string }
+            imiona?: { imie?: string; imieDrugie?: string }
+            funkcjaWOrganie?: string
+            czyZawieszona?: boolean
           }>
         }
+        organNadzoru?: Array<{
+          nazwa?: string
+          sklad?: Array<{
+            nazwisko?: { nazwiskoICzlon?: string; nazwiskoIICzlon?: string }
+            imiona?: { imie?: string; imieDrugie?: string }
+          }>
+        }>
       }
       dzial6?: {
         likwidacja?: { dataRozwiazania?: string }
@@ -117,17 +125,42 @@ function mapPkd(d: KrsDzial1 | undefined): PLPKDCode[] {
   return out
 }
 
+function fullName(
+  imiona: { imie?: string; imieDrugie?: string } | undefined,
+  nazwisko: { nazwiskoICzlon?: string; nazwiskoIICzlon?: string } | undefined
+): string {
+  return [imiona?.imie, imiona?.imieDrugie, nazwisko?.nazwiskoICzlon, nazwisko?.nazwiskoIICzlon]
+    .filter((p) => p && p.trim() !== '')
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 function mapDirectors(raw: KrsResponse): PLDirector[] {
-  const sklad = raw.odpis?.dane?.dzial2?.organReprezentacji?.sklad ?? []
+  const sklad = raw.odpis?.dane?.dzial2?.reprezentacja?.sklad ?? []
   return sklad.map((s) => {
-    const n = s.nazwiska ?? {}
     return {
-      name: `${n.imiePierwsze ?? ''} ${n.nazwiskoIPierwszyClon ?? ''}`.trim(),
-      role: n.funkcjaWOrganieReprezentujacym ?? '',
+      name: fullName(s.imiona, s.nazwisko),
+      role: s.funkcjaWOrganie ?? '',
       since: null,
       krsEntryNumber: null,
     }
   })
+}
+
+function mapSupervisoryBoard(raw: KrsResponse): { name: string; role: string; since: string | null }[] {
+  const organs = raw.odpis?.dane?.dzial2?.organNadzoru ?? []
+  const out: { name: string; role: string; since: string | null }[] = []
+  for (const organ of organs) {
+    for (const s of organ.sklad ?? []) {
+      out.push({
+        name: fullName(s.imiona, s.nazwisko),
+        role: organ.nazwa ?? 'RADA NADZORCZA',
+        since: null,
+      })
+    }
+  }
+  return out
 }
 
 function mapEntity(raw: KrsResponse): PLCompanyInfo {
@@ -153,7 +186,7 @@ function mapEntity(raw: KrsResponse): PLCompanyInfo {
     pkdCodes: mapPkd(d1),
     court: naglowek.oznaczenieSaduDokonujacegoOstatniegoWpisu ?? '',
     directors: mapDirectors(raw),
-    supervisoryBoard: [],
+    supervisoryBoard: mapSupervisoryBoard(raw),
     status: mapStatus(raw, dissolved, bankrupt),
     _raw: raw,
   }
