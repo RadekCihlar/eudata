@@ -1,0 +1,15 @@
+{
+  "name": "eudata-common",
+  "version": "0.0.1",
+  "description": "Shared types, HTTP client, and utilities for eudata packages",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "test": "vitest run",
+    "lint": "tsc --noEmit"
+  },
+  "license": "MIT",
+  "files": ["dist"]
+}

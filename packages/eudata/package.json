@@ -1,0 +1,21 @@
+{
+  "name": "eudata",
+  "version": "0.0.1",
+  "description": "Unified EU public data — company, insolvency, VAT across CZ, SK, PL + VIES, sanctions, LEI",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "dependencies": {
+    "eudata-common": "^0.0.1",
+    "czechdata": "^0.0.1",
+    "slovakdata": "^0.0.1",
+    "polishdata": "^0.0.1"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "test": "vitest run",
+    "lint": "tsc --noEmit"
+  },
+  "license": "MIT",
+  "files": ["dist"]
+}
