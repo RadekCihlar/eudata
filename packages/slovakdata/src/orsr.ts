@@ -58,26 +58,49 @@ function extractAddress(root: HTMLElement): OrsfAddressRaw {
   }
 }
 
+const ROLE_RE = /-\s*(Predseda predstavenstva|Podpredseda predstavenstva|Člen predstavenstva|Konateľ|Likvidátor)/i
+
+/**
+ * ORSR renders each director as a single cell containing:
+ *   "FirstName LastName[, jobtitle] - Role Street Number City PSC Country Vznik funkcie: date"
+ * Members of Dozorná rada / Prokúra omit the "- Role" separator.
+ * Strategy: find every <td> containing "Vznik funkcie", parse name/role/date.
+ */
 function extractDirectors(root: HTMLElement): SKDirector[] {
   const out: SKDirector[] = []
-  const allText = root.text
-  const blockMatch = /Štatutárny\s+orgán:?\s*([\s\S]{0,3000}?)(?:Konanie|Likvidácia|Akcionár|Spoločníci|$)/.exec(allText)
-  if (!blockMatch) return out
-  const block = blockMatch[1] ?? ''
-  const nameRegex = /([A-ZÁČĎÉÍĹĽŇÓÔŔŠŤÚÝŽ][a-záčďéíĺľňóôŕšťúýž]+\s+[A-ZÁČĎÉÍĹĽŇÓÔŔŠŤÚÝŽ][a-záčďéíĺľňóôŕšťúýž]+(?:\s+[A-ZÁČĎÉÍĹĽŇÓÔŔŠŤÚÝŽ][a-záčďéíĺľňóôŕšťúýž]+)?)/g
   const seen = new Set<string>()
-  let m: RegExpExecArray | null
-  while ((m = nameRegex.exec(block)) !== null) {
-    const name = cleanName(m[1]!)
-    if (seen.has(name)) continue
-    seen.add(name)
-    out.push({
-      name,
-      role: 'konateľ',
-      since: null,
-      until: null,
-      address: null,
-    })
+  // Restrict to the cells that belong to the statutory body. The ORSR
+  // page lists Štatutárny orgán → Konanie → Dozorná rada → Prokúra
+  // in document order, so we only take cells appearing before the
+  // "Konanie menom spoločnosti" boundary.
+  const tds = root.querySelectorAll('td')
+  let inBody = false
+  for (let i = 0; i < tds.length; i++) {
+    const cell = tds[i]
+    if (!cell) continue
+    const t = normalizeText(cell.text)
+    if (/^Štatutárny orgán|^Konateľ:|^Predstavenstvo:|^Likvidátor:/i.test(t)) {
+      inBody = true
+      continue
+    }
+    if (/^Konanie|^Dozorná rada|^Prokúra|^Akcionár|^Spoločníci|^Výška základného/i.test(t)) {
+      inBody = false
+      continue
+    }
+    if (!inBody) continue
+    if (!t.includes('Vznik funkcie')) continue
+    const stripped = stripOdSuffix(t)
+    const beforeVznik = stripped.split(/Vznik funkcie/i)[0] ?? ''
+    const roleMatch = ROLE_RE.exec(beforeVznik)
+    const namePart = (roleMatch ? beforeVznik.slice(0, roleMatch.index) : beforeVznik).split(',')[0] ?? ''
+    const cleaned = cleanName(namePart)
+    const tokens = cleaned.split(/\s+/).filter((tok) => /^[A-ZÁČĎÉÍĹĽŇÓÔŔŠŤÚÝŽ]/.test(tok))
+    if (tokens.length < 2) continue
+    const fullName = tokens.slice(0, 3).join(' ')
+    const role = roleMatch ? roleMatch[1]!.toLowerCase() : 'konateľ'
+    if (seen.has(fullName)) continue
+    seen.add(fullName)
+    out.push({ name: fullName, role, since: null, until: null, address: null })
   }
   return out
 }

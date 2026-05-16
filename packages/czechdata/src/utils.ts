@@ -73,6 +73,16 @@ export function decodeLegalForm(code: string | null | undefined): LegalForm {
   return legalFormMap[code] ?? 'other'
 }
 
+/**
+ * Return raw human-readable legal form label preserved from ARES, falling
+ * back to the canonical map if ARES only gave a code.
+ */
+export function legalFormLabel(code: string | null | undefined, rawLabel?: string | null): string {
+  if (rawLabel && rawLabel.trim() !== '') return rawLabel.trim()
+  const canonical = decodeLegalForm(code)
+  return canonical === 'other' ? (code ?? '') : canonical
+}
+
 export function decodeNACE(code: string): string {
   return code
 }

@@ -54,6 +54,7 @@ export const MODULES: ModuleSpec[] = [
   { country: 'pl', slug: 'risk', label: 'Risk Assessment', description: 'PL composite score', inputLabel: 'NIP', exampleId: '5260250274', status: 'experimental', note: 'Mostly depends on White List' },
 
   // EU
+  { country: 'eu', slug: 'universal', label: 'Universal Lookup', description: 'Any ID, any country, all sources at once', inputLabel: 'ICO / NIP / KRS / LEI / name', exampleId: '64949681', status: 'working', note: 'Auto-detects country from ID format; tries all relevant sources in parallel; degrades gracefully when individual sources fail' },
   { country: 'eu', slug: 'vies', label: 'VIES VAT', description: 'EU-wide VAT validation', inputLabel: 'VAT (CC+digits)', exampleId: 'CZ64774716', status: 'experimental', note: 'ec.europa.eu may be blocked by ISP/network — try from different network' },
   { country: 'eu', slug: 'sanctions', label: 'EU Sanctions', description: 'Consolidated list', inputLabel: 'Name', exampleId: 'Putin', status: 'broken', note: 'EU sanctions XML token expired; needs current download URL' },
   { country: 'eu', slug: 'lei', label: 'LEI (GLEIF)', description: 'Legal Entity Identifier', inputLabel: 'LEI or name', exampleId: 'Acme', status: 'working' },

@@ -12,6 +12,8 @@ export { recalls } from 'czechdata'
 export { food } from 'czechdata'
 export { detectCountry, stripCountryPrefix } from './router.js'
 export { company, vat, insolvency, risk } from './unified.js'
+export { universal } from './universal.js'
+export type { UniversalResult } from './universal.js'
 
 export * as cz from 'czechdata'
 export * as sk from 'slovakdata'

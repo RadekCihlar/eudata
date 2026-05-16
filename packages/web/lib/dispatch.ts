@@ -1,7 +1,7 @@
 import * as cz from 'czechdata'
 import * as sk from 'slovakdata'
 import * as pl from 'polishdata'
-import { vies, sanctions as euSanctions, lei, trademark } from 'eudata'
+import { vies, sanctions as euSanctions, lei, trademark, universal } from 'eudata'
 import { validateNipChecksum } from 'eudata-common'
 
 type Handler = (id: string) => Promise<unknown>
@@ -56,6 +56,7 @@ const handlers: Record<string, Handler> = {
   'pl/risk': (id) => pl.risk.assess(id),
 
   // EU
+  'eu/universal': (id) => universal.lookup(id),
   'eu/vies': (id) => vies.validate(id),
   'eu/sanctions': (id) => euSanctions.check(id),
   'eu/lei': async (id) => {
