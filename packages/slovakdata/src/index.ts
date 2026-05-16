@@ -10,6 +10,8 @@ export { financial } from './financial.js'
 export { court } from './court.js'
 export { contracts } from './contracts.js'
 export { trade } from './trade.js'
+export { tenders } from './tenders.js'
+export { ubo } from './ubo.js'
 export {
   formatICO,
   validateICO,
