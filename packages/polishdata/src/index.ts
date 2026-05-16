@@ -9,6 +9,12 @@ export { regon } from './regon.js'
 export type { RegonAuthOptions } from './regon.js'
 export { insolvency } from './insolvency.js'
 export { ubo } from './ubo.js'
+export { financial } from './financial.js'
+export { court } from './court.js'
+export type { PLCourtDecision, PLCourtSearchOptions } from './court.js'
+export { tenders } from './tenders.js'
+export type { PLTender, PLTenderSearchOptions } from './tenders.js'
+export { sanctions } from './sanctions.js'
 export {
   formatNIP,
   validateNIP,
