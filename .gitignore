@@ -144,3 +144,6 @@ vite.config.ts.timestamp-*
 
 # Local Claude config
 .claude/
+
+# Explorer is local-dev only — never commit, never push, never mention in README.
+packages/web/

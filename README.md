@@ -124,20 +124,6 @@ parsePESEL('44051401359').dateOfBirth            // → "1944-05-14"
 
 ---
 
-## Explorer
-
-A Next.js explorer ships in `packages/web` for poking the modules without writing code. It runs the library server-side (so gov-API CORS isn't an issue) and gives you a sidebar of every module, an input field per module, pre-filled telekom examples, copy-as-curl, and a raw JSON viewer.
-
-```bash
-npm install
-npm run dev -w web
-# → http://localhost:3000
-```
-
-New modules are flagged with a `NEW` badge so they're easy to spot.
-
----
-
 ## Architecture
 
 ```
