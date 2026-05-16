@@ -2,12 +2,12 @@ import Link from 'next/link'
 import { MODULES, STATUS_META } from '@/lib/modules'
 
 const QUICK_TRIES = [
-  { country: 'cz', slug: 'company', id: '64774716', desc: 'Czech business by ICO' },
-  { country: 'cz', slug: 'risk', id: '64774716', desc: 'Composite risk score' },
-  { country: 'pl', slug: 'company', id: '0000019193', desc: 'Polish company by KRS' },
-  { country: 'pl', slug: 'vat', id: '5260250274', desc: 'White List VAT check' },
-  { country: 'cz', slug: 'vin', id: '1HGCM82633A004352', desc: 'VIN decode (NHTSA, global)' },
-  { country: 'eu', slug: 'lei', id: 'Acme', desc: 'LEI search (GLEIF)' },
+  { country: 'eu', slug: 'universal', id: '64949681', desc: 'Universal lookup — T-Mobile CZ (ICO)' },
+  { country: 'cz', slug: 'company', id: '64949681', desc: 'T-Mobile Czech Republic a.s. (ARES)' },
+  { country: 'sk', slug: 'company', id: '35763469', desc: 'Slovak Telekom, a.s. (ORSR scrape)' },
+  { country: 'pl', slug: 'company', id: '0000010681', desc: 'Orange Polska S.A. (KRS)' },
+  { country: 'pl', slug: 'vat', id: '5260250995', desc: 'Orange Polska White List (150 banks)' },
+  { country: 'cz', slug: 'risk', id: '64949681', desc: 'T-Mobile CZ composite risk' },
 ]
 
 export default function Home() {
