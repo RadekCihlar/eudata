@@ -16,7 +16,6 @@ export const MODULES: ModuleSpec[] = [
   { country: 'cz', slug: 'company', label: 'Company (ARES)', description: 'Business registry', inputLabel: 'ICO', exampleId: '64949681', status: 'working' },
   { country: 'cz', slug: 'insolvency', label: 'Insolvency (ISIR)', description: 'Bankruptcy proceedings', inputLabel: 'ICO', exampleId: '64949681', status: 'working' },
   { country: 'cz', slug: 'vat', label: 'VAT', description: 'Reliability + bank accounts', inputLabel: 'ICO or DIC', exampleId: 'CZ64949681', status: 'experimental', note: 'SOAP envelope may need adjustment' },
-  { country: 'cz', slug: 'trade', label: 'Trade (RŽP)', description: 'Trade license via ARES', inputLabel: 'ICO', exampleId: '64949681', status: 'working' },
   { country: 'cz', slug: 'execution', label: 'Execution (CEECR)', description: 'Debt enforcement', inputLabel: 'ICO', exampleId: '64949681', status: 'broken', note: 'CEECR has no public API; needs HTML scraping with valid selectors' },
   { country: 'cz', slug: 'vehicle', label: 'Vehicle (ISTP)', description: 'STK + odometer', inputLabel: 'Plate', exampleId: '1A23456', status: 'broken', note: 'ISTP requires auth, no public scrape endpoint' },
   { country: 'cz', slug: 'vin', label: 'VIN (NHTSA)', description: 'Decode VIN globally', inputLabel: 'VIN', exampleId: '1HGCM82633A004352', status: 'working' },
