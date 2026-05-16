@@ -4,6 +4,7 @@ export * from './types.js'
 export { company } from './company.js'
 export { insolvency } from './insolvency.js'
 export { vat } from './vat.js'
+export { risk } from './risk.js'
 export {
   formatICO,
   validateICO,
@@ -14,4 +15,16 @@ export {
   decodeNACE,
   normalizeAddress,
 } from './utils.js'
-export { configure, clearCache } from 'eudata-common'
+export {
+  configure,
+  clearCache,
+  setRateLimit,
+  resetRateLimit,
+  EuDataError,
+  HttpError,
+  TimeoutError,
+  ValidationError,
+  NotFoundError,
+  ParseError,
+  RateLimitError,
+} from 'eudata-common'
