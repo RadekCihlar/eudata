@@ -66,14 +66,20 @@ function mapEntity(raw: OrsfEntity): SKCompanyInfo {
   }
 }
 
+import { orsr } from './orsr.js'
+
 export const company = {
   async lookup(ico: string, opts?: RequestOptions): Promise<SKCompanyInfo> {
     const valid = assertValidICO(ico)
-    const raw = await fetchJSON<OrsfEntity>(`${ORSF_BASE}/entity/${valid}`, {
-      ...(opts ?? {}),
-      source: 'sk:orsf',
-    })
-    return mapEntity(raw)
+    try {
+      const raw = await fetchJSON<OrsfEntity>(`${ORSF_BASE}/entity/${valid}`, {
+        ...(opts ?? {}),
+        source: 'sk:orsf',
+      })
+      return mapEntity(raw)
+    } catch {
+      return orsr.lookup(valid, opts)
+    }
   },
 
   async search(name: string, opts?: SKSearchOptions): Promise<SKCompanyInfo[]> {

@@ -11,5 +11,10 @@
     "lint": "tsc --noEmit"
   },
   "license": "MIT",
-  "files": ["dist"]
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "node-html-parser": "^7.1.0"
+  }
 }

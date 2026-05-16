@@ -32,7 +32,7 @@ export const MODULES: ModuleSpec[] = [
   { country: 'cz', slug: 'risk', label: 'Risk Assessment', description: 'Composite score (ARES+ISIR+VAT)', inputLabel: 'ICO', exampleId: '64774716', status: 'experimental', note: 'Depends on VAT SOAP success' },
 
   // SK
-  { country: 'sk', slug: 'company', label: 'Company (ORSF)', description: 'Unified registry', inputLabel: 'IČO', exampleId: '36421928', status: 'broken', note: 'api.orsf.sk not reachable; would need ORSR HTML scrape fallback' },
+  { country: 'sk', slug: 'company', label: 'Company (ORSR scrape)', description: 'Slovak commercial register via HTML scrape', inputLabel: 'IČO', exampleId: '35763469', status: 'experimental', note: 'Scrapes orsr.sk (windows-1250 HTML); some fields include date suffixes like "(od: …)" that need post-processing' },
   { country: 'sk', slug: 'insolvency', label: 'Insolvency', description: 'ru.justice.sk', inputLabel: 'IČO', exampleId: '36421928', status: 'broken', note: 'Portal only, no JSON API' },
   { country: 'sk', slug: 'vat', label: 'VAT', description: 'Financial Administration', inputLabel: 'IČO', exampleId: '36421928', status: 'broken', note: 'financnasprava.sk JSON path needs research' },
   { country: 'sk', slug: 'debtors', label: 'Debtors', description: '4 insurance lists', inputLabel: 'IČO', exampleId: '36421928', status: 'broken', note: 'Each source publishes CSV/XLSX only, no JSON' },
