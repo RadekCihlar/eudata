@@ -34,6 +34,9 @@ Built for due diligence, KYC, supplier checks, sanctions screening, and any othe
 - **`geocode.search(addr)`** / **`geocode.reverse(point)`** — OpenStreetMap Nominatim. Address → lat/lon (or back). Fills the gap where local address registries are gated.
 - **`fx.nbp(curr)`** / **`fx.cnb()`** / **`fx.ecb()`** / **`fx.convert(amount, from, to)`** — three central bank FX feeds (Polish NBP, Czech CNB, European ECB). For converting Polish financials to EUR, Czech budget figures to USD, whatever you need.
 - **`vies.validate(vatNumber)`** — EU-wide VAT number validation across all 27 member states.
+- **`euTenders.search({country, query, limit})`** — TED (Tenders Electronic Daily) full EU public procurement archive. Hundreds of thousands of notices per country. Returns publication numbers + multi-language PDF/XML links.
+- **`domain.lookup(name)`** — RDAP domain WHOIS. Registrar, registration and expiry dates, nameservers, registrant organization where the TLD permits. Handy for sanity-checking a company's online presence.
+- **`stats.indicator(key, country)`** / **`stats.summary(country)`** — Eurostat economic data: GDP growth, GDP per capita, HICP inflation, unemployment rate, total population, general-government debt. Country-level macro context for risk assessments.
 
 ### Pure utilities (no network)
 
@@ -93,7 +96,7 @@ const ok = await vat.verifyAccount('5260250995', '17103015080000000503131100')
 ```
 
 ```ts
-import { universal, lei, wikidata, fx } from 'eudata'
+import { universal, lei, wikidata, fx, euTenders, domain, stats } from 'eudata'
 
 const everything = await universal.lookup('T-Mobile Czech Republic')
 // → { country: 'CZ', idType: 'name', lei: {...}, ... }
@@ -101,6 +104,15 @@ const everything = await universal.lookup('T-Mobile Czech Republic')
 const hierarchy = await lei.children('5299003ILFQKHJYNK282')
 const wd = await wikidata.byName('Orange Polska')
 const eur = await fx.convert(1000, 'PLN', 'EUR')
+
+const cz = await euTenders.search({ country: 'CZ', limit: 10 })
+// → { total: 341928, notices: [{publicationNumber, pdfUrls, ...}] }
+
+const dom = await domain.lookup('orange.pl')
+// → { registrar: 'Corporation Service Company', registered: '1999-01-12', ... }
+
+const macro = await stats.summary('CZ')
+// → { gdpGrowth: 2.6, inflationHICP: 2.3, unemployment: 33, population: 10909500, ... }
 ```
 
 ```ts
@@ -109,6 +121,20 @@ import { parseIBAN, parsePESEL } from 'eudata'
 parseIBAN('CZ6508000000192000145399').bankCode  // → "0800"
 parsePESEL('44051401359').dateOfBirth            // → "1944-05-14"
 ```
+
+---
+
+## Explorer
+
+A Next.js explorer ships in `packages/web` for poking the modules without writing code. It runs the library server-side (so gov-API CORS isn't an issue) and gives you a sidebar of every module, an input field per module, pre-filled telekom examples, copy-as-curl, and a raw JSON viewer.
+
+```bash
+npm install
+npm run dev -w web
+# → http://localhost:3000
+```
+
+New modules are flagged with a `NEW` badge so they're easy to spot.
 
 ---
 
