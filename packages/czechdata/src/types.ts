@@ -131,3 +131,101 @@ export interface QuickRisk {
   flagCount: number
   topFlag: string | null
 }
+
+export interface ExecutionProceeding {
+  executor: string
+  fileReference: string
+  startDate: string | null
+  status: 'active' | 'completed' | 'stopped' | 'unknown'
+  court: string | null
+}
+
+export interface ExecutionResult {
+  query: string
+  hasActiveExecutions: boolean
+  count: number
+  proceedings: ExecutionProceeding[]
+}
+
+export interface TradeLicense {
+  type: 'volna' | 'vazana' | 'remeslna' | 'koncesovana' | 'unknown'
+  name: string
+  validFrom: string | null
+  validTo: string | null
+  suspended: boolean
+}
+
+export interface TradeLicenseInfo {
+  ico: string
+  name: string
+  licenses: TradeLicense[]
+  hasActiveLicense: boolean
+}
+
+export interface VinDecoded {
+  vin: string
+  make: string
+  model: string
+  year: number | null
+  bodyType: string
+  engineType: string
+  engineDisplacement: string
+  fuelType: string
+  transmission: string
+  driveType: string
+  doors: number | null
+  plantCountry: string
+  plantCity: string | null
+  vehicleType: string
+  _raw: unknown
+}
+
+export interface VinRecall {
+  campaignNumber: string
+  date: string
+  component: string
+  summary: string
+  consequence: string
+  remedy: string
+}
+
+export type RecallCategory =
+  | 'toys'
+  | 'motor_vehicles'
+  | 'electrical'
+  | 'cosmetics'
+  | 'food'
+  | 'clothing'
+  | 'furniture'
+  | 'chemicals'
+  | 'other'
+
+export interface ProductRecall {
+  id: string
+  title: string
+  description: string
+  category: RecallCategory
+  brand: string
+  product: string
+  risk: string
+  measures: string
+  notifyingCountry: string
+  publishDate: string
+  imageUrl: string | null
+}
+
+export interface BatchOptions extends RequestOptions {
+  concurrency?: number
+  onProgress?: (done: number, total: number) => void
+  continueOnError?: boolean
+}
+
+export interface ChangeReport {
+  ico: string
+  changes: Array<{
+    field: string
+    oldValue: unknown
+    newValue: unknown
+    detectedAt: string
+  }>
+}

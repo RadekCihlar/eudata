@@ -5,6 +5,11 @@ export { company } from './company.js'
 export { insolvency } from './insolvency.js'
 export { vat } from './vat.js'
 export { risk } from './risk.js'
+export { execution } from './execution.js'
+export { trade } from './trade.js'
+export { vin } from './vin.js'
+export { recalls } from './recalls.js'
+export { batch } from './batch.js'
 export {
   formatICO,
   validateICO,
