@@ -10,6 +10,10 @@ export { trade } from './trade.js'
 export { vin } from './vin.js'
 export { recalls } from './recalls.js'
 export { batch } from './batch.js'
+export { vehicle } from './vehicle.js'
+export { court } from './court.js'
+export { address } from './address.js'
+export { budget } from './budget.js'
 export {
   formatICO,
   validateICO,

@@ -229,3 +229,146 @@ export interface ChangeReport {
     detectedAt: string
   }>
 }
+
+export interface Defect {
+  code: string | null
+  severity: 'minor' | 'major' | 'critical'
+  description: string
+}
+
+export interface InspectionRecord {
+  date: string
+  type: 'STK' | 'emission' | 'other'
+  result: 'pass' | 'fail' | 'conditional' | 'unknown'
+  mileageKm: number | null
+  station: string | null
+  defects: Defect[]
+}
+
+export interface VehicleInfo {
+  plate: string
+  vin: string | null
+  stkExpiry: string | null
+  emissionExpiry: string | null
+  inspections: InspectionRecord[]
+}
+
+export interface OdometerAnomaly {
+  type: 'rollback' | 'gap' | 'excessive_daily_average'
+  fromDate: string
+  toDate: string
+  fromKm: number
+  toKm: number
+  message: string
+}
+
+export interface OdometerReport {
+  plate: string
+  readings: Array<{ date: string; km: number }>
+  anomalies: OdometerAnomaly[]
+  suspicious: boolean
+}
+
+export interface Director {
+  name: string
+  role: string
+  since: string | null
+  until: string | null
+  address: string | null
+}
+
+export interface Shareholder {
+  name: string
+  type: 'person' | 'company'
+  ico: string | null
+  share: string | null
+}
+
+export interface CommercialRegisterEntry {
+  ico: string
+  name: string
+  registeredAt: string
+  section: string
+  fileNumber: string
+  registeredCapital: number | null
+  directors: Director[]
+  shareholders: Shareholder[]
+}
+
+export interface CourtDecision {
+  court: string
+  fileReference: string
+  date: string
+  type: string
+  summary: string
+}
+
+export interface FullAddress {
+  addressCode: string
+  street: string | null
+  houseNumber: string
+  orientationNumber: string | null
+  municipality: string
+  municipalityPart: string | null
+  district: string | null
+  region: string
+  postalCode: string
+  latitude: number | null
+  longitude: number | null
+  formatted: string
+}
+
+export interface AddressSuggestion {
+  addressCode: string
+  formatted: string
+}
+
+export interface AddressValidation {
+  valid: boolean
+  normalized: FullAddress | null
+  suggestions: AddressSuggestion[]
+  confidence: number
+}
+
+export interface MunicipalityInfo {
+  code: string
+  name: string
+  district: string | null
+  region: string | null
+  population: number | null
+}
+
+export interface BudgetCategory {
+  code: string
+  name: string
+  planned: number
+  actual: number
+  percentUsed: number
+}
+
+export interface MunicipalBudget {
+  ico: string
+  name: string
+  year: number
+  income: { planned: number; actual: number; categories: BudgetCategory[] }
+  expenses: { planned: number; actual: number; categories: BudgetCategory[] }
+  balance: number
+  debtTotal: number
+}
+
+export interface StateBudget extends MunicipalBudget {}
+
+export interface BudgetOrg {
+  ico: string
+  name: string
+  type: string
+}
+
+export interface BudgetComparison {
+  ico: string
+  name: string
+  years: number[]
+  incomeByYear: Record<number, number>
+  expensesByYear: Record<number, number>
+  debtByYear: Record<number, number>
+}
