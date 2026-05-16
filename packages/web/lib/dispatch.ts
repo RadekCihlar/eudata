@@ -11,7 +11,6 @@ const handlers: Record<string, Handler> = {
   'cz/company': (id) => cz.company.lookup(id),
   'cz/insolvency': (id) => cz.insolvency.check(id),
   'cz/vat': (id) => cz.vat.check(id),
-  'cz/trade': (id) => cz.trade.lookup(id),
   'cz/execution': (id) => cz.execution.checkCompany(id),
   'cz/vehicle': (id) => cz.vehicle.byPlate(id),
   'cz/vin': (id) => cz.vin.decode(id),
