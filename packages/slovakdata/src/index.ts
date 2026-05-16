@@ -6,6 +6,10 @@ export { insolvency } from './insolvency.js'
 export { vat } from './vat.js'
 export { debtors } from './debtors.js'
 export { risk } from './risk.js'
+export { financial } from './financial.js'
+export { court } from './court.js'
+export { contracts } from './contracts.js'
+export { trade } from './trade.js'
 export {
   formatICO,
   validateICO,

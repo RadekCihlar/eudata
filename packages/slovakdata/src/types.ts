@@ -146,6 +146,68 @@ export interface SKRiskFlag {
   severity: 'low' | 'medium' | 'high' | 'critical'
 }
 
+export interface SKCourtDecision {
+  id: string
+  court: string
+  fileReference: string
+  date: string
+  type: string
+  summary: string
+  parties: string[]
+}
+
+export interface SKCourtDecisionDetail extends SKCourtDecision {
+  textUrl: string | null
+}
+
+export interface SKContract {
+  id: string
+  title: string
+  contractor: { name: string; ico: string }
+  authority: { name: string; ico: string }
+  value: number | null
+  currency: string
+  signedDate: string
+  publishedDate: string
+  type: string
+  documentUrl: string
+}
+
+export interface SKTender {
+  id: string
+  title: string
+  authority: { name: string; ico: string }
+  estimatedValue: number | null
+  currency: string
+  publishDate: string
+  deadline: string | null
+  status: 'open' | 'closed' | 'awarded' | 'cancelled' | 'unknown'
+  cpvCodes: string[]
+  winner?: { name: string; ico: string; awardedValue: number }
+}
+
+export interface SKTradeLicense {
+  type: string
+  name: string
+  validFrom: string | null
+  validTo: string | null
+}
+
+export interface SKTradeLicenseInfo {
+  ico: string
+  name: string
+  licenses: SKTradeLicense[]
+  hasActiveLicense: boolean
+}
+
+export interface SKBeneficialOwner {
+  name: string
+  nationality: string
+  dateOfBirth: string | null
+  share: string | null
+  registeredSince: string
+}
+
 export interface SKRiskReport {
   ico: string
   name: string
