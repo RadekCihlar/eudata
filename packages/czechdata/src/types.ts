@@ -372,3 +372,176 @@ export interface BudgetComparison {
   expensesByYear: Record<number, number>
   debtByYear: Record<number, number>
 }
+
+export interface Lien {
+  type: string
+  holder: string
+  registeredDate: string
+  description: string
+}
+
+export interface ParcelInfo {
+  cadastralArea: string
+  parcelNumber: string
+  area: number
+  landType: string
+  owner: string
+  ownerType: 'person' | 'company' | 'state' | 'municipality' | 'unknown'
+  liens: Lien[]
+}
+
+export interface BuildingInfo {
+  address: string
+  buildingType: string
+  builtYear: number | null
+  floors: number | null
+  units: number | null
+  parcelNumber: string
+  owner: string
+}
+
+export interface OwnershipInfo {
+  propertyId: string
+  owners: Array<{
+    name: string
+    share: string
+    type: 'person' | 'company'
+    ico?: string
+  }>
+  transferHistory: Array<{
+    date: string
+    from: string
+    to: string
+    type: string
+  }>
+}
+
+export interface PropertySummary {
+  propertyId: string
+  cadastralArea: string
+  parcelNumber: string
+  type: string
+}
+
+export interface Tender {
+  id: string
+  title: string
+  contractingAuthority: { name: string; ico: string }
+  estimatedValue: number | null
+  currency: string
+  publishDate: string
+  deadline: string | null
+  status: 'open' | 'closed' | 'awarded' | 'cancelled' | 'unknown'
+  cpvCodes: string[]
+  winner?: { name: string; ico: string; awardedValue: number }
+}
+
+export interface TenderSearchOptions extends RequestOptions {
+  limit?: number
+  status?: 'open' | 'closed' | 'awarded'
+  minValue?: number
+  maxValue?: number
+  cpvCode?: string
+  region?: string
+  dateFrom?: string
+  dateTo?: string
+}
+
+export interface TenderAnomaly {
+  type: 'single_bidder' | 'just_under_threshold' | 'repeat_winner' | 'rushed_deadline' | 'price_anomaly'
+  tenderId: string
+  description: string
+  severity: 'info' | 'warning' | 'suspicious'
+}
+
+export interface AirQuality {
+  station: string
+  location: GeoPoint
+  index: number
+  level: 'good' | 'fair' | 'moderate' | 'poor' | 'bad' | 'very_bad' | 'unknown'
+  pollutants: {
+    pm25: number | null
+    pm10: number | null
+    o3: number | null
+    no2: number | null
+    so2: number | null
+  }
+  measuredAt: string
+}
+
+export interface WeatherCurrent {
+  station: string
+  temperature: number | null
+  humidity: number | null
+  pressure: number | null
+  windSpeed: number | null
+  measuredAt: string
+}
+
+export interface WeatherWarning {
+  type: string
+  severity: 'yellow' | 'orange' | 'red'
+  regions: string[]
+  validFrom: string
+  validTo: string
+  description: string
+}
+
+export interface WaterLevel {
+  station: string
+  river: string
+  level: number
+  flow: number | null
+  trend: 'rising' | 'falling' | 'steady'
+  measuredAt: string
+}
+
+export interface FoodAlert {
+  id: string
+  title: string
+  type: 'alert' | 'border_rejection' | 'information' | 'news'
+  product: string
+  category: string
+  hazard: string
+  origin: string
+  distributedTo: string[]
+  date: string
+  notifiedBy: string
+}
+
+export interface FoodSearchOptions extends RequestOptions {
+  limit?: number
+  fromDate?: string
+  toDate?: string
+}
+
+export interface EmissionReport {
+  facility: string
+  ico: string
+  location: GeoPoint
+  year: number
+  emissions: Array<{
+    substance: string
+    amount: number
+    unit: string
+    medium: 'air' | 'water' | 'soil'
+  }>
+}
+
+export interface Violation {
+  company: string
+  ico: string | null
+  date: string
+  type: string
+  description: string
+  fine: number | null
+  resolution: string
+}
+
+export interface Polluter {
+  facility: string
+  ico: string
+  location: GeoPoint
+  distanceKm: number
+  pollutants: string[]
+}

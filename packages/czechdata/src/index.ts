@@ -14,6 +14,11 @@ export { vehicle } from './vehicle.js'
 export { court } from './court.js'
 export { address } from './address.js'
 export { budget } from './budget.js'
+export { cadastre } from './cadastre.js'
+export { tenders } from './tenders.js'
+export { weather } from './weather.js'
+export { food } from './food.js'
+export { environment } from './environment.js'
 export {
   formatICO,
   validateICO,
