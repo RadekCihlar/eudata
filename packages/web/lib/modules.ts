@@ -57,6 +57,12 @@ export const MODULES: ModuleSpec[] = [
   { country: 'eu', slug: 'vies', label: 'VIES VAT', description: 'EU-wide VAT validation', inputLabel: 'VAT (CC+digits)', exampleId: 'CZ64949681', status: 'experimental', note: 'ec.europa.eu may be blocked by ISP/network — try from different network' },
   { country: 'eu', slug: 'sanctions', label: 'EU Sanctions', description: 'Consolidated list', inputLabel: 'Name', exampleId: 'Putin', status: 'broken', note: 'EU sanctions XML token expired; needs current download URL' },
   { country: 'eu', slug: 'lei', label: 'LEI (GLEIF)', description: 'Legal Entity Identifier', inputLabel: 'LEI or name', exampleId: 'Acme', status: 'working' },
+  { country: 'eu', slug: 'lei-children', label: 'LEI Children', description: 'Direct subsidiary LEIs', inputLabel: 'LEI code', exampleId: '5299003ILFQKHJYNK282', status: 'working' },
+  { country: 'eu', slug: 'iban', label: 'IBAN Validator', description: 'Validate + parse any IBAN', inputLabel: 'IBAN', exampleId: 'CZ6508000000192000145399', status: 'working' },
+  { country: 'eu', slug: 'pesel', label: 'PESEL (PL)', description: 'Validate + extract DOB and gender', inputLabel: '11-digit PESEL', exampleId: '44051401359', status: 'working' },
+  { country: 'eu', slug: 'fx', label: 'FX Rates', description: 'NBP + CNB + ECB exchange rates', inputLabel: 'Currency (e.g. EUR)', exampleId: 'EUR', status: 'working' },
+  { country: 'eu', slug: 'geocode', label: 'Geocode (OSM)', description: 'Address → lat/lon (Nominatim)', inputLabel: 'Address', exampleId: 'Tomíčkova 2144/1, Praha', status: 'working' },
+  { country: 'eu', slug: 'wikidata', label: 'Wikidata', description: 'Company entity, founders, subsidiaries', inputLabel: 'Company name', exampleId: 'T-Mobile Czech Republic', status: 'working' },
   { country: 'eu', slug: 'trademark', label: 'Trademark (EUIPO)', description: 'EU trademarks', inputLabel: 'Query', exampleId: 'apple', status: 'broken', note: 'EUIPO API blocks external requests' },
 ]
 

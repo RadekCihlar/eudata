@@ -1,7 +1,7 @@
 import * as cz from 'czechdata'
 import * as sk from 'slovakdata'
 import * as pl from 'polishdata'
-import { vies, sanctions as euSanctions, lei, trademark, universal } from 'eudata'
+import { vies, sanctions as euSanctions, lei, trademark, universal, fx, geocode, wikidata, parseIBAN, parsePESEL } from 'eudata'
 import { validateNipChecksum } from 'eudata-common'
 
 type Handler = (id: string) => Promise<unknown>
@@ -63,6 +63,17 @@ const handlers: Record<string, Handler> = {
     return lei.search(id)
   },
   'eu/trademark': (id) => trademark.search(id, { limit: 20 }),
+  'eu/iban': async (id) => parseIBAN(id),
+  'eu/pesel': async (id) => parsePESEL(id),
+  'eu/fx': async (id) => {
+    const ecb = await fx.ecb('EUR').catch(() => [])
+    const cnb = await fx.cnb().catch(() => [])
+    const nbp = await fx.nbp(id.toUpperCase()).catch(() => null)
+    return { quoteRequested: id.toUpperCase(), ecb, cnb, nbp }
+  },
+  'eu/geocode': async (id) => geocode.search(id, { limit: 5 }),
+  'eu/wikidata': async (id) => wikidata.byName(id),
+  'eu/lei-children': async (id) => lei.children(id),
 }
 
 export async function dispatchModule(

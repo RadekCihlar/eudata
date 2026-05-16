@@ -131,6 +131,26 @@ export const lei = {
     return out
   },
 
+  async children(leiCode: string, opts?: RequestOptions): Promise<LEIRecord[]> {
+    const url = `${GLEIF_BASE}/lei-records/${encodeURIComponent(leiCode)}/direct-children?page%5Bsize%5D=200`
+    try {
+      const res = await fetchJSON<{ data?: GleifRecord[] }>(url, { ...(opts ?? {}), source: 'eu:gleif' })
+      return (res.data ?? []).map(mapRecord)
+    } catch {
+      return []
+    }
+  },
+
+  async ultimateChildren(leiCode: string, opts?: RequestOptions): Promise<LEIRecord[]> {
+    const url = `${GLEIF_BASE}/lei-records/${encodeURIComponent(leiCode)}/ultimate-children?page%5Bsize%5D=200`
+    try {
+      const res = await fetchJSON<{ data?: GleifRecord[] }>(url, { ...(opts ?? {}), source: 'eu:gleif' })
+      return (res.data ?? []).map(mapRecord)
+    } catch {
+      return []
+    }
+  },
+
   async findByNationalId(
     country: string,
     nationalId: string,
