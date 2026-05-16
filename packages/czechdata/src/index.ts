@@ -2,6 +2,7 @@ export const VERSION = '0.0.1'
 
 export * from './types.js'
 export { company } from './company.js'
+export { insolvency } from './insolvency.js'
 export {
   formatICO,
   validateICO,
