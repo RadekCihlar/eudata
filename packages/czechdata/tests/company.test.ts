@@ -45,7 +45,7 @@ describe('company.lookup', () => {
     const info = await company.lookup('64774716', { retries: 0 })
     expect(info.ico).toBe('64774716')
     expect(info.name).toBe('Test Company s.r.o.')
-    expect(info.legalForm).toBe('sro')
+    expect(info.legalForm).toBe('as')
     expect(info.legalFormCode).toBe('121')
     expect(info.active).toBe(true)
     expect(info.vatId).toBe('CZ64774716')

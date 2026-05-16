@@ -32,30 +32,39 @@ export function normalizeDIC(dic: string): string {
   return dic.replace(/\s+/g, '').toUpperCase()
 }
 
+// Klasifikace právních forem (ČSÚ).
+// See https://www.czso.cz/csu/czso/klasifikace_pravnich_forem
 const legalFormMap: Record<string, LegalForm> = {
+  '100': 'sole_trader',
   '101': 'sole_trader',
   '102': 'sole_trader',
+  '107': 'sole_trader',
   '111': 'vos',
-  '112': 'ks',
-  '113': 'ks',
-  '121': 'sro',
-  '141': 'sro',
-  '151': 'sro',
-  '152': 'sro',
-  '161': 'sro',
-  '162': 'sro',
-  '171': 'sro',
+  '112': 'sro',
+  '113': 'vos',
+  '117': 'ks',
+  '118': 'ks',
+  '121': 'as',
+  '141': 'as',
+  '145': 'as',
+  '161': 'cooperative',
+  '205': 'cooperative',
   '301': 'cooperative',
   '331': 'cooperative',
   '421': 'foreign_branch',
   '422': 'foreign_branch',
   '521': 'as',
+  '601': 'association',
   '631': 'association',
   '641': 'foundation',
+  '651': 'foundation',
   '661': 'foundation',
   '706': 'association',
+  '725': 'association',
   '751': 'state_org',
+  '761': 'state_org',
   '801': 'municipality',
+  '804': 'state_org',
   '811': 'municipality',
 }
 

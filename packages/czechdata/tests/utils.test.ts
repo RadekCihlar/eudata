@@ -78,10 +78,12 @@ describe('normalizeDIC', () => {
 })
 
 describe('decodeLegalForm', () => {
-  it('maps known codes', () => {
-    expect(decodeLegalForm('121')).toBe('sro')
+  it('maps known codes correctly', () => {
+    expect(decodeLegalForm('112')).toBe('sro')
+    expect(decodeLegalForm('121')).toBe('as')
     expect(decodeLegalForm('521')).toBe('as')
     expect(decodeLegalForm('101')).toBe('sole_trader')
+    expect(decodeLegalForm('205')).toBe('cooperative')
   })
 
   it('returns "other" for unknown', () => {
