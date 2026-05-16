@@ -1,2 +1,14 @@
-// Coming soon
 export const VERSION = '0.0.1'
+
+export * from './types.js'
+export {
+  formatICO,
+  validateICO,
+  assertValidICO,
+  validateDIC,
+  normalizeDIC,
+  decodeLegalForm,
+  decodeNACE,
+  normalizeAddress,
+} from './utils.js'
+export { configure, clearCache } from 'eudata-common'
