@@ -1,131 +1,167 @@
 # eudata
 
-Unified TypeScript library for EU public data — company registries, insolvency, VAT, VIN, LEI across Czech Republic, Slovakia, Poland, and the EU layer.
+A TypeScript library for querying EU public business data. Zero runtime dependencies, Node 20+ built-ins only.
 
-Zero runtime dependencies. Node 20+ built-ins only. Full TypeScript types. Monorepo with per-country packages.
+Built for due diligence, KYC, supplier checks, sanctions screening, and any other "is this company real / is it in good standing" question you keep having to answer manually.
 
 ---
 
-## v0.1 — Honest Scope
+## What you get
 
-The original implementation plan listed 45 data sources. Reality check: roughly two-thirds of EU government registries ship as HTML SPAs, CSV-only downloads, or behind login walls — they have no public REST API despite being legally "open data."
+### Czech Republic — `czechdata`
 
-**Currently working (live-verified):**
+- **`company.lookup(ico)`** — full company record from ARES: name, address, legal form, founding date, VAT ID, NACE codes, active status, all registry flags. The single most useful CZ business endpoint.
+- **`insolvency.check(ico)`** — insolvency proceedings from ISIR (the official bankruptcy register). Tells you if the company is in active bankruptcy, restructuring, or in the clear.
+- **`vin.decode(vin)`** — global VIN decode via NHTSA. Year, make, model, engine, fuel type. Works for any vehicle worldwide, not just Czech.
+- **`risk.assess(ico)`** — composite score 0-100 combining company + insolvency + VAT signals. Returns a level (`low`/`medium`/`high`/`critical`) and human-readable flags. The one call you'd make before signing a contract.
 
-| Module | Source | Use case |
-|---|---|---|
-| `czechdata.company` | ARES | CZ company by ICO |
-| `czechdata.insolvency` | ISIR | CZ bankruptcy check |
-| `czechdata.trade` | ARES (trade flag) | CZ trade license |
-| `czechdata.vin` | NHTSA | Global VIN decode |
-| `polishdata.company.byKRS` | KRS REST API | PL company by KRS number |
-| `polishdata.vat` | White List | PL VAT + bank verification |
-| `eudata.lei` | GLEIF | EU Legal Entity Identifier |
+### Slovakia — `slovakdata`
 
-**Experimental (endpoint or parser issues):**
+- **`company.lookup(ico)`** — pulls the Slovak commercial register (ORSR) via HTML scrape since the country has no public REST API for company data. Returns name, address, legal form, section/vložka, registering court, and statutory board members with roles. Slow (1-2s) but real.
 
-- `czechdata.vat` — SOAP envelope needs adjustment
-- `czechdata.court` — HTML scraping selectors are placeholders
-- `czechdata.risk` — composite score works when underlying sources work
-- `eudata.vies` — `ec.europa.eu` blocked from some networks
+### Poland — `polishdata`
 
-**Not shipping in v0.1** (no public API / needs key / requires scraping):
+- **`company.byKRS(krs)`** — National Court Register lookup by 10-digit KRS number. Full company including directors and supervisory board (names censored by the official API — that's a Polish legal requirement, not a bug).
+- **`vat.check(nip)`** — Polish White List (Biała Lista) VAT verification. Critical for invoicing: paying to an unregistered bank account loses you the VAT deduction. This endpoint gives you all the registered accounts for any NIP plus the active/exempt/deregistered status.
+- **`vat.verifyAccount(nip, iban)`** — single boolean: is this bank account registered for this NIP today? Use it on every invoice.
 
-- SK: ORSF, ru.justice.sk, FS VAT, debtor lists, otvorenesudy, CRZ, ÚVO, RPVS
-- PL: CEIDG (needs API key), REGON BIR (needs key), KRZ, CRBR, UZP
-- CZ: CEECR, ISTP, RÚIAN REST, ČÚZK, Monitor v3, Safety Gate, ČHMÚ, RASFF, SZPI, IRZ, ČIŽP, NIPEZ
-- EU: consolidated sanctions XML, EUIPO, EPO (needs OAuth)
+### EU-wide — `eudata`
 
-See [`STATUS.md`](./STATUS.md) for the full per-module breakdown including what would be needed to make each broken module work.
+- **`universal.lookup(query)`** — the meta endpoint. Pass it anything (ICO, NIP, KRS, LEI, company name, ID with country prefix) and it auto-detects country + ID type, fans out to all relevant sources in parallel, and returns a single result with company + VAT + insolvency + LEI attached. Falls back gracefully when individual sources are unreachable.
+- **`lei.lookup(leiCode)`** / **`lei.search(name)`** — GLEIF Legal Entity Identifier records. Full address, jurisdiction, status, managing LOU.
+- **`lei.children(lei)`** / **`lei.ultimateChildren(lei)`** — corporate hierarchy. Direct subsidiaries or the full tree under an ultimate parent.
+- **`wikidata.byName(name)`** — pulls a company's Wikidata entry: founding date, headquarters, industry, ticker, ISIN, LEI cross-link, website, parent organization, named subsidiaries. Useful for cross-referencing what registries tell you.
+- **`geocode.search(addr)`** / **`geocode.reverse(point)`** — OpenStreetMap Nominatim. Address → lat/lon (or back). Fills the gap where local address registries are gated.
+- **`fx.nbp(curr)`** / **`fx.cnb()`** / **`fx.ecb()`** / **`fx.convert(amount, from, to)`** — three central bank FX feeds (Polish NBP, Czech CNB, European ECB). For converting Polish financials to EUR, Czech budget figures to USD, whatever you need.
+- **`vies.validate(vatNumber)`** — EU-wide VAT number validation across all 27 member states.
+
+### Pure utilities (no network)
+
+- **`validateIBAN(iban)`** / **`parseIBAN(iban)`** — ISO 13616 mod-97 checksum for 84 countries, plus extracts the bank code, branch code, and account number where the format permits.
+- **`validatePESEL(p)`** / **`parsePESEL(p)`** — Polish 11-digit personal ID. Decodes date of birth (handles 1800-2200 century offsets) and gender.
+- **`validateNIP(n)`** — Polish tax ID checksum.
+- **`validateICO(i)`** — Czech & Slovak business ID mod-11 checksum.
+
+---
+
+## Why this exists
+
+Every EU country has its own business registry with its own URLs, response formats, encoding quirks, and access patterns. ARES returns JSON. ORSR returns windows-1250 HTML. KRS returns JSON but censors names. CNB publishes pipe-delimited text. RASFF is a SPA. VIES is SOAP with REST grafted on. The Polish White List takes batches of 30 NIPs but the Czech VAT register takes SOAP envelopes.
+
+Nobody wants to learn all of that to find out if their counterparty filed for bankruptcy. This library is the layer that did the learning, so your code calls `company.lookup('64949681')` and gets back a typed `CompanyInfo` regardless of country.
+
+It's also the layer that knows what's worth caching, where rate limits matter, which sources to retry, and which fields are gov-mangled placeholders versus real data. That's the value — not the individual fetches, but the integration of them.
+
+---
+
+## Install
+
+```bash
+npm install eudata
+# or just the country package you need
+npm install czechdata
+npm install polishdata
+```
+
+---
+
+## Quick examples
+
+```ts
+import { company, insolvency, risk } from 'czechdata'
+
+const info = await company.lookup('64949681')
+console.log(info.name)            // → "T-Mobile Czech Republic a.s."
+console.log(info.address.formatted) // → "Tomíčkova 2144/1, Chodov, 14800 Praha 4"
+console.log(info.legalForm)         // → "as"
+
+const r = await risk.assess('64949681')
+console.log(r.score, r.level)        // → 100 "low"
+console.log(r.flags.map(f => f.message))
+```
+
+```ts
+import { vat } from 'polishdata'
+
+const v = await vat.check('5260250995')
+console.log(v.name)                          // → "ORANGE POLSKA SPÓŁKA AKCYJNA"
+console.log(v.status)                        // → "active"
+console.log(v.registeredBankAccounts.length) // → 150
+
+const ok = await vat.verifyAccount('5260250995', '17103015080000000503131100')
+// → true; safe to invoice
+```
+
+```ts
+import { universal, lei, wikidata, fx } from 'eudata'
+
+const everything = await universal.lookup('T-Mobile Czech Republic')
+// → { country: 'CZ', idType: 'name', lei: {...}, ... }
+
+const hierarchy = await lei.children('5299003ILFQKHJYNK282')
+const wd = await wikidata.byName('Orange Polska')
+const eur = await fx.convert(1000, 'PLN', 'EUR')
+```
+
+```ts
+import { parseIBAN, parsePESEL } from 'eudata'
+
+parseIBAN('CZ6508000000192000145399').bankCode  // → "0800"
+parsePESEL('44051401359').dateOfBirth            // → "1944-05-14"
+```
 
 ---
 
 ## Architecture
 
 ```
-eudata-monorepo/
-├── packages/
-│   ├── eudata-common/    Shared HTTP client, errors, checksums, XML helpers
-│   ├── czechdata/        CZ modules
-│   ├── slovakdata/       SK modules (most modules unshipped; needs scrapers)
-│   ├── polishdata/       PL modules
-│   ├── eudata/           Unified API + EU layer (VIES, LEI, sanctions, EUIPO)
-│   └── web/              Next.js explorer UI
-├── STATUS.md             Per-endpoint health doc
-└── .claude/IMPLEMENTATION_PLAN.md   Original plan (aspirational)
+packages/
+├── eudata-common/   Shared HTTP client, error classes, checksum validators,
+│                    HTML scrape helpers, IBAN/PESEL utilities
+├── czechdata/       Czech sources (ARES, ISIR, NHTSA, VAT SOAP, risk)
+├── slovakdata/      Slovak sources (ORSR HTML scraper)
+├── polishdata/      Polish sources (KRS, White List)
+└── eudata/          Unified API + EU layer (LEI, VIES, Wikidata, geocode,
+                     FX, universal lookup)
 ```
 
-Each country package follows the same shape:
+Each country package can be installed and used on its own. The `eudata` umbrella re-exports everything and adds the cross-border helpers.
 
-```
-src/
-├── types.ts       TS interfaces
-├── utils.ts       ID validators (NIP, ICO, etc.)
-├── <source>.ts    One file per data source
-├── risk.ts        Composite scoring across sources
-└── index.ts       Public exports
-```
-
-Country packages depend on `eudata-common`. The `eudata` umbrella re-exports country namespaces and adds the EU layer.
+Country packages depend on `eudata-common`, which handles the boring stuff: retries with exponential backoff, in-memory TTL cache, per-source rate limiting, proper error hierarchy (`HttpError`, `TimeoutError`, `ParseError`, etc.), and the universal mod-11 / mod-97 checksums shared across the EU.
 
 ---
 
-## Quick start
-
-### Node.js
+## Configuration
 
 ```ts
-import { company, insolvency, risk } from 'czechdata'
+import { configure, clearCache } from 'eudata'
 
-const info = await company.lookup('64774716')
-console.log(info.name) // → "Pavel Krása"
+configure({
+  cacheTTL: 300_000,        // 5 minutes
+  timeout: 10_000,
+  retries: 2,
+  rateLimitPerMinute: 60,
+  userAgent: 'MyApp/1.0 (contact@example.com)',
+})
 
-const ins = await insolvency.check('64774716')
-console.log(ins.insolvent) // → false
-
-const report = await risk.assess('64774716')
-console.log(report.score, report.level) // → 100 "low"
+clearCache() // wipe all cached responses
 ```
-
-```ts
-import { vat } from 'polishdata'
-
-const r = await vat.check('5260250274')
-console.log(r.status, r.registeredBankAccounts.length)
-```
-
-```ts
-import { lei, vies } from 'eudata'
-
-const records = await lei.search('PKP')
-const validation = await vies.validate('CZ64774716')
-```
-
-### Browser
-
-Gov APIs almost universally block CORS. Browser fetch will fail. Use the Next.js explorer (`packages/web`) as a reference for backend proxy pattern.
 
 ---
 
-## Run the explorer
+## Browser use
 
-```bash
-npm install
-npm run dev -w web
-# → http://localhost:3000
-```
-
-Sidebar lists currently-working modules. Each module page has an input, example loader, copy-as-curl, raw JSON viewer, and (for risk pages) score visualization with flags.
+Government APIs almost universally block CORS. Calling them from a browser will fail. Run the lib server-side (Node, Bun, Deno, edge functions, etc.) and expose a thin API to your frontend.
 
 ---
 
 ## Development
 
 ```bash
-npm install           # install workspace deps
-npm run build         # build all packages
-npm run test          # run all tests (118 unit tests, mocked fetch)
-npm run lint          # type-check all packages
+npm install
+npm run build
+npm run test
+npm run lint
 ```
 
 Per-package:
@@ -134,20 +170,6 @@ Per-package:
 npm run test -w czechdata
 npm run build -w polishdata
 ```
-
----
-
-## Roadmap
-
-**v0.2** — register for free API keys (CEIDG, REGON BIR), unlock 3-4 more PL modules.
-
-**v0.3** — real HTML scrapers for ORSR (SK), CEECR (CZ executions), justice.cz commercial register.
-
-**v0.4** — bulk-data ETL for debtor lists (SK insurance debtors), EU consolidated sanctions XML.
-
-**v0.5** — verify all remaining endpoints; target ~20 working modules across CZ/SK/PL/EU.
-
-Issues and PRs welcome at https://github.com/RadekCihlar/eudata.
 
 ---
 
