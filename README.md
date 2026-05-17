@@ -41,9 +41,16 @@ Built for due diligence, KYC, supplier checks, sanctions screening, and any othe
 - **`eurlex.byCelex(celex)`** / **`eurlex.search({query})`** — EU legislation lookup over the Publications Office SPARQL endpoint. Returns title, document date, type, subject matters, and HTML/PDF links across 24 official languages.
 - **`cordis.search({query, country, funder})`** — Horizon EU research projects via OpenAIRE. Covers FP7, H2020, Horizon Europe, plus national funder catalogues. Returns code, dates, coordinator, participants, EC contribution.
 - **`fundingTenders.search({query, programme, status})`** — EU Funding & Tenders portal (SEDIA) open calls. Programme, deadline, opening date, topic identifier, portal URL.
+- **`postal.lookup(country, postcode)`** — Zippopotam postcode → place name, state, lat/lon. 60+ countries (DE/FR/NL/BE/AT/ES/IT/PL/PT/... plus US/CA/GB).
+- **`europarl.meps({country})`** / **`europarl.mep(id)`** — current European Parliament members from data.europarl.europa.eu. Roster by country or detail lookup by MEP ID.
+- **`openaire.search({query, author, country, fromYear})`** — research publications via OpenAIRE (papers, datasets, software). Covers DOAJ, EU repositories, and 100+ data providers.
+- **`opensanctions.search({query, schema, dataset})`** / **`opensanctions.pep(name)`** / **`opensanctions.sanctioned(name)`** — aggregated sanctions + PEP screening across EU, UN, US, UK and 200+ datasets. Requires free OpenSanctions API key.
+- **`lobby.search({query, country})`** — EU Transparency Register: organizations that lobby EU institutions. Budget, FTE, members, registration date.
 
 ### Pure utilities (no network)
 
+- **`validateLEI(lei)`** / **`parseLEI(lei)`** — ISO 17442 LEI checksum (ISO/IEC 7064 mod-97-10). Extracts LOU prefix, entity part, check digits. No network call.
+- **`validateBIC(bic)`** / **`parseBIC(bic)`** — ISO 9362 SWIFT/BIC format check. Extracts institution code, country, location, branch, plus test/passive/reverse-billing flags from the location suffix.
 - **`validateIBAN(iban)`** / **`parseIBAN(iban)`** — ISO 13616 mod-97 checksum for 84 countries, plus extracts the bank code, branch code, and account number where the format permits.
 - **`validatePESEL(p)`** / **`parsePESEL(p)`** — Polish 11-digit personal ID. Decodes date of birth (handles 1800-2200 century offsets) and gender.
 - **`validateNIP(n)`** — Polish tax ID checksum.
