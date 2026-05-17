@@ -37,6 +37,10 @@ Built for due diligence, KYC, supplier checks, sanctions screening, and any othe
 - **`euTenders.search({country, query, limit})`** — TED (Tenders Electronic Daily) full EU public procurement archive. Hundreds of thousands of notices per country. Returns publication numbers + multi-language PDF/XML links.
 - **`domain.lookup(name)`** — RDAP domain WHOIS. Registrar, registration and expiry dates, nameservers, registrant organization where the TLD permits. Handy for sanity-checking a company's online presence.
 - **`stats.indicator(key, country)`** / **`stats.summary(country)`** — Eurostat economic data: GDP growth, GDP per capita, HICP inflation, unemployment rate, total population, general-government debt. Country-level macro context for risk assessments.
+- **`eori.validate(eori)`** / **`eori.lookup(eori)`** — EU customs operator ID. Format validator + live SOAP check against TAXUD. Sibling to VIES for the import/export side.
+- **`eurlex.byCelex(celex)`** / **`eurlex.search({query})`** — EU legislation lookup over the Publications Office SPARQL endpoint. Returns title, document date, type, subject matters, and HTML/PDF links across 24 official languages.
+- **`cordis.search({query, country, funder})`** — Horizon EU research projects via OpenAIRE. Covers FP7, H2020, Horizon Europe, plus national funder catalogues. Returns code, dates, coordinator, participants, EC contribution.
+- **`fundingTenders.search({query, programme, status})`** — EU Funding & Tenders portal (SEDIA) open calls. Programme, deadline, opening date, topic identifier, portal URL.
 
 ### Pure utilities (no network)
 
@@ -113,6 +117,23 @@ const dom = await domain.lookup('orange.pl')
 
 const macro = await stats.summary('CZ')
 // → { gdpGrowth: 2.6, inflationHICP: 2.3, unemployment: 33, population: 10909500, ... }
+```
+
+```ts
+import { eori, eurlex, cordis, fundingTenders } from 'eudata'
+
+const e = await eori.lookup('DE123456789012345')
+// → { eori: 'DE123456789012345', valid: false, name: null, ... }
+
+const gdpr = await eurlex.byCelex('32016R0679')
+// → { title: 'Regulation (EU) 2016/679 ... General Data Protection Regulation ...',
+//     date: '2016-04-27', type: 'REG', subjects: ['PROT', 'INFO', 'ELSJ'], urls: {...} }
+
+const projects = await cordis.search({ query: 'quantum computing', limit: 10 })
+// → { projects: [{code, acronym, title, coordinator, ecContribution, ...}], total: ... }
+
+const calls = await fundingTenders.search({ query: 'climate', limit: 20 })
+// → { topics: [{identifier: 'LIFE-2022-SAP-CLIMA-CCM', deadline, url, ...}], total: ... }
 ```
 
 ```ts
